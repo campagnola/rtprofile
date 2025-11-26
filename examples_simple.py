@@ -6,7 +6,7 @@ print("=" * 60)
 print("Example 1: Headless Profiling")
 print("=" * 60)
 
-from rtprofile import Profile
+from rtprofile.profiler import Profile
 import time
 
 

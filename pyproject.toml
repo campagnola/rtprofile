@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rtprofile"
-version = "0.1.0"
+dynamic = ["version"]
 description = "Real-time profiling tools for running Python applications with Qt GUI support"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -12,12 +12,14 @@ license = {text = "MIT"}
 authors = [
     {name = "ACQ4 Contributors"}
 ]
-dependencies = [
-    "pyqtgraph>=0.13.0",
-]
+dependencies = []
 
 [project.optional-dependencies]
+qt = ["pyqtgraph>=0.13.0"]
 memory = ["guppy3"]
 
 [project.urls]
-Homepage = "https://github.com/acq4/acq4"
+Homepage = "https://github.com/campagnola/rtprofile"
+
+[tool.setuptools.dynamic]
+version = {attr = "rtprofile.__version__"}

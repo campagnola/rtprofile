@@ -342,6 +342,9 @@ class FunctionProfiler(Qt.QObject):
             # Console tab
             self.console = ConsoleWidget(namespace={'profiler': self})
 
+            # Enable exceptions button by default
+            self.console.exceptionBtn.setChecked(True)
+
             # Add tabs
             self.bottom_tabs.addTab(analysis_container, "Analysis")
             self.bottom_tabs.addTab(self.console, "Console")
@@ -541,8 +544,7 @@ class FunctionProfiler(Qt.QObject):
             self.function_info_label.setText("Select a function to see details")
             self._clearHighlighting()
             # Clear console stack
-            if self.console:
-                self.console.setStack(None)
+            self._setConsoleStack(None)
             return
 
         # Get the current profile result
@@ -570,16 +572,30 @@ class FunctionProfiler(Qt.QObject):
             self._displayFunctionDetails(call_record, result)
 
             # Update console stack with the selected function's frame
-            if self.console:
-                self.console.setStack(call_record.frame)
+            self._setConsoleStack(call_record.frame)
         elif isinstance(selected_item, LazyThreadItem):
             # Thread selected - clear detail view
             self.detail_tree.clear()
             self.function_info_label.setText("Select a function to see details")
             self._clearHighlighting()
             # Clear console stack
-            if self.console:
-                self.console.setStack(None)
+            self._setConsoleStack(None)
+
+    def _setConsoleStack(self, frame):
+        self.console.setStack(frame)
+        if frame is None:
+            return
+
+        # select the bottom-most frame
+        stack_tree = self.console.excHandler.stackTree
+        if stack_tree.topLevelItemCount() == 0:
+            return
+        last_item = stack_tree.invisibleRootItem()
+        while last_item.childCount() > 0:
+            last_item = last_item.child(last_item.childCount() - 1)
+
+        stack_tree.setCurrentItem(last_item)
+        stack_tree.scrollToItem(last_item)
 
     def _updateFunctionInfoLabel(self, call_record: CallRecord):
         """Update the function info label with selected function details"""

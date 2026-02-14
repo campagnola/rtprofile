@@ -1,0 +1,62 @@
+name: Run Tests
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.12', '3.13']
+
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libgl1 libglx-mesa0 xvfb
+
+    - name: Install package
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e .
+
+    - name: Test core functionality (no Qt)
+      run: |
+        python -c "from rtprofile.profiler import Profile; print('Core profiler import successful')"
+
+    - name: Install Qt dependencies and test Qt functionality
+      run: |
+        pip install -e .[qt]
+        xvfb-run -a python -c "
+        import sys
+        from rtprofile.function_profiler import FunctionProfiler
+        print('Qt profiler import successful')
+        "
+
+    - name: Test package imports
+      run: |
+        python -c "
+        import rtprofile
+        print('Package version:', rtprofile.__version__)
+
+        # Test core profiler
+        from rtprofile.profiler import Profile
+        prof = Profile()
+        print('Core profiler works')
+
+        # Test Qt components with dummy Qt app
+        from rtprofile import qt_shim as Qt
+        app = Qt.QApplication([])
+        from rtprofile.function_profiler import FunctionProfiler
+        from rtprofile.memory_profiler import MemoryProfiler
+        from rtprofile.profiler_tabs import ProfilerTabs
+        print('All Qt components import successfully')
+        "

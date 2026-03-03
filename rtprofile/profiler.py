@@ -140,12 +140,16 @@ class Profile:
 
 
 class CallRecord:
+    """Represents a single function call event, with timing and parent-child relationships."""
     def __init__(self, event):
         self.timestamp, self.thread_id, self.frame, self.event_type, self.arg, self._calling_lineno, self._current_lineno = event
         self.parent = None
         self.children = []
         self.duration = None
         self.depth = None
+
+    def __repr__(self):
+        return f"<CallRecord {self.display_name} at {self.filename}:{self.lineno} ({self.event_type})>"
 
     def set_parent(self, parent):
         self.parent = parent
@@ -190,7 +194,7 @@ class CallRecord:
 
     @property
     def lineno(self):
-        """Return the line number where at the time of this event.
+        """Return the line number at the time of this event.
         
         For 'call' events, this is the line where the called function is _defined_.
         For 'c_call' events, this is the line where the C function was _called_."""

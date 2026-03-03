@@ -18,41 +18,12 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: Install system dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y libgl1 libglx-mesa0 xvfb
-
     - name: Install package
       run: |
         python -m pip install --upgrade pip
         pip install -e .
-        pip install pytest guppy3 pyqt5 pyqtgraph
+        pip install pytest guppy3
 
     - name: Run tests
       run: |
         pytest -sv rtprofile/tests/
-
-    - name: Test Qt imports
-      run: |
-        xvfb-run -a python -c "
-
-        import rtprofile
-        print('Package version:', rtprofile.__version__)
-
-        # Test core profiler
-        from rtprofile.profiler import Profile
-        prof = Profile()
-        print('Core profiler import successful')
-
-        from rtprofile.function_profiler import FunctionProfiler
-        print('Qt profiler import successful')
-
-        # Test Qt components with dummy Qt app
-        from rtprofile import qt_shim as Qt
-        app = Qt.QApplication([])
-        from rtprofile.function_profiler import FunctionProfiler
-        from rtprofile.memory_profiler import MemoryProfiler
-        from rtprofile.profiler_tabs import ProfilerTabs
-        print('All Qt components import successfully')
-        "

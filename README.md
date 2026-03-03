@@ -4,13 +4,13 @@ Real-time profiling tools designed for debugging running Python applications whe
 
 ## Features
 
-- **Function Profiler**: Thread-aware function profiling using Python 3.12+ `setprofile_all_threads`
+- **Function Profiler**: Thread-aware function profiling with console-inspectable stacks for all profiled frames
 - **Memory Profiler**: Snapshot-based memory profiling with heap analysis (requires guppy3)
 - **Qt Event Profiler**: Qt event loop profiling for PyQt/PySide applications
 
 ## Requirements
 
-- Python 3.12+ (required for `threading.setprofile_all_threads()`)
+- Python 3.12+
 - PyQtGraph (optional, for Qt GUI widgets)
 - Guppy3 (optional, for memory profiling)
 

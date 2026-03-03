@@ -29,29 +29,24 @@ jobs:
         pip install -e .
         pip install pytest guppy3
 
-    - name: Test core functionality (no Qt)
+    - name: Run tests
       run: |
         pytest -sv rtprofile/tests/
 
-    - name: Install Qt dependencies and test Qt functionality
+    - name: Test Qt imports
       run: |
-        pip install pyqt5 pyqtgraph
         xvfb-run -a python -c "
-        import sys
-        from rtprofile.function_profiler import FunctionProfiler
-        print('Qt profiler import successful')
-        "
 
-    - name: Test package imports
-      run: |
-        python -c "
         import rtprofile
         print('Package version:', rtprofile.__version__)
 
         # Test core profiler
         from rtprofile.profiler import Profile
         prof = Profile()
-        print('Core profiler works')
+        print('Core profiler import successful')
+
+        from rtprofile.function_profiler import FunctionProfiler
+        print('Qt profiler import successful')
 
         # Test Qt components with dummy Qt app
         from rtprofile import qt_shim as Qt

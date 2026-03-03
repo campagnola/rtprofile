@@ -35,7 +35,7 @@ jobs:
 
     - name: Install Qt dependencies and test Qt functionality
       run: |
-        pip install pyqt5
+        pip install pyqt5 pyqtgraph
         xvfb-run -a python -c "
         import sys
         from rtprofile.function_profiler import FunctionProfiler

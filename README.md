@@ -2,11 +2,12 @@
 
 Real-time profiling tools designed for debugging running Python applications where traditional debugging is challenging.
 
-## Features
+This is yet another set of tools for profiling function performance and memory usage. Why write yet another when so many exist? There are a few features here that I haven't seen anywhere else:
 
-- **Function Profiler**: Thread-aware function profiling with console-inspectable stacks for all profiled frames
-- **Memory Profiler**: Snapshot-based memory profiling with heap analysis (requires guppy3)
-- **Qt Event Profiler**: Qt event loop profiling for PyQt/PySide applications
+- **Embeddable Qt user interface**: Embed into a Qt GUI to add on-demand profiliing to your application. Includes interfaces for both function and memory profiling.
+- **Function Profiler**: Thread-aware function profiling with console-inspectable stacks for all profiled frames. You can run the profiler for a short period of time and then browse through the entire call history, for all threads, for the duration of the profile run. For each call, the calling frame is stored so you can load this frame in a GUI console and inspect variables in the stack of the call. This also makes it very useful for debugging -- rather than stepping through your code, just let it run, and then view and inspect the entire call history.  
+- **Memory Profiler**: Snapshot-based memory profiling with heap analysis (requires guppy3). Collect multiple memory profiles and then automatically compare to see the differences. Select two profiles to see what objects are created/deleteted from one profile to the next. Select 3+ profiles to see which objects are _persistent_; this makes it easy to track down leaked objects.
+- **Qt Event Profiler**: Qt event loop profiling for PyQt/PySide applications (see what events are consuming time in your Qt event loop)
 
 ## Requirements
 

@@ -398,15 +398,16 @@ class FunctionProfiler(Qt.QObject):
         else:
             self._startProfiling()
 
-    def _startProfiling(self):
-        """Begin a new profiling session"""
-        # Parse max duration
-        max_duration_text = self.max_duration_edit.text().strip()
-        max_duration = float(max_duration_text) if max_duration_text else 0
+    def start_session(self, name=None, max_duration=None):
+        """Begin a profiling session headlessly (used by the Start button and by callers)"""
+        if not self.python_version_ok:
+            raise RuntimeError('Function profiling requires a newer Python')
+
+        self._pending_name = name or f"NewProfile_{len(self.profile_results) + 1}"
 
         # Create and start profiler with callback for auto-stop notification
         self.current_profiler = Profile(
-            max_duration=max_duration if max_duration > 0 else None,
+            max_duration=max_duration if max_duration else None,
             finish_callback=lambda profile: self.profilerFinished.emit()
         )
         self.current_profiler.start()
@@ -414,35 +415,54 @@ class FunctionProfiler(Qt.QObject):
         self.is_profiling = True
         self.current_session_start = datetime.now()
 
+    def stop_session(self):
+        """Stop the current session, store the result, and return it"""
+        if not self.is_profiling or self.current_profiler is None:
+            return None
+
+        # Stop profiler and get events data
+        self.current_profiler.stop()
+
+        # Create result object
+        session_name = getattr(self, '_pending_name', None) or f"NewProfile_{len(self.profile_results) + 1}"
+        result = ProfileResult(session_name, self.current_session_start, self.current_profiler)
+        self.profile_results.append(result)
+
+        self.is_profiling = False
+        self.current_session_start = None
+        self.current_profiler = None
+
+        return result
+
+    def _startProfiling(self):
+        """Begin a new profiling session"""
+        # Parse max duration
+        max_duration_text = self.max_duration_edit.text().strip()
+        max_duration = float(max_duration_text) if max_duration_text else 0
+
+        self.start_session(
+            name=self.session_name_edit.text() or None,
+            max_duration=max_duration if max_duration > 0 else None
+        )
+
         self.start_stop_btn.setText("Stop Profiling")
         self.start_stop_btn.setStyleSheet("background-color: #ff4444;")
 
     def _stopProfiling(self):
         """End current profiling session and store results"""
-        if not self.is_profiling or self.current_profiler is None:
+        self._pending_name = self.session_name_edit.text() or None
+        result = self.stop_session()
+        if result is None:
             return
-
-        # Stop profiler and get events data
-        self.current_profiler.stop()
-        events_data = self.current_profiler.get_events()
-
-        # Create result object
-        session_name = self.session_name_edit.text() or f"NewProfile_{len(self.profile_results) + 1}"
-        result = ProfileResult(session_name, self.current_session_start, self.current_profiler)
-        self.profile_results.append(result)
 
         # Update UI
         self._addResultToList(result)
-        self.is_profiling = False
-        self.current_session_start = None
-        self.current_profiler = None
 
         self.start_stop_btn.setText("Start Profiling")
         self.start_stop_btn.setStyleSheet("")
 
         # Update session name for next run
         self.session_name_edit.setText(f"NewProfile_{len(self.profile_results) + 1}")
-
 
     def _handleProfilerFinished(self):
         """Handle profiler auto-stop in the main thread"""

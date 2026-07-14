@@ -286,12 +286,12 @@ class MemoryProfiler:
 
         return panel
 
-    def _takeSnapshot(self):
-        """Take a memory snapshot using guppy"""
+    def take_snapshot(self, name=None):
+        """Capture a guppy heap snapshot headlessly, store it, and return it"""
         if not GUPPY_AVAILABLE:
-            return
+            raise RuntimeError('Guppy3 not available. Install with: pip install guppy3')
 
-        snapshot_name = self.snapshot_name_edit.text() or f"Snapshot_{len(self.snapshots) + 1}"
+        snapshot_name = name or f"Snapshot_{len(self.snapshots) + 1}"
         timestamp = datetime.now()
 
         try:
@@ -302,6 +302,14 @@ class MemoryProfiler:
             snapshot = MemorySnapshot(snapshot_name, timestamp, error_message=str(e))
 
         self.snapshots.append(snapshot)
+        return snapshot
+
+    def _takeSnapshot(self):
+        """Take a memory snapshot using guppy"""
+        if not GUPPY_AVAILABLE:
+            return
+
+        snapshot = self.take_snapshot(name=self.snapshot_name_edit.text() or None)
         self._addSnapshotToList(snapshot)
 
         # Update snapshot name for next run

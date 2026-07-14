@@ -125,43 +125,56 @@ class QtEventProfiler:
         else:
             self._startProfiling()
 
+    def start_session(self, name=None, hold_receivers=False):
+        """Start a Qt event profiling session headlessly"""
+        app = Qt.QApplication.instance()
+        if not hasattr(app, 'start_profile'):
+            raise RuntimeError('Qt event profiling requires ACQ4 started with --qt-profile (ProfiledQApplication)')
+
+        session_name = name or f"Qt_Profile_{len(self.profile_results) + 1}"
+        self.current_profile = app.start_profile(session_name, hold_receivers=hold_receivers)
+        self.is_profiling = True
+
+    def stop_session(self):
+        """Stop the current Qt session, store it, and return it"""
+        if self.current_profile is None:
+            return None
+
+        # Stop the profile
+        self.current_profile.stop()
+        profile = self.current_profile
+        self.profile_results.append(profile)
+
+        self.is_profiling = False
+        self.current_profile = None
+
+        return profile
+
     def _startProfiling(self):
         """Start a new Qt event profiling session"""
-        # Get the QApplication instance (we know it's valid from availability check)
-        app = Qt.QApplication.instance()
-
-        # Start profiling session
-        session_name = self.session_name_edit.text() or f"Qt_Profile_{len(self.profile_results) + 1}"
+        session_name = self.session_name_edit.text() or None
         hold_receivers = self.hold_receivers_checkbox.isChecked()
-
-        self.current_profile = app.start_profile(session_name, hold_receivers=hold_receivers)
+        self.start_session(name=session_name, hold_receivers=hold_receivers)
 
         # Update UI
-        self.is_profiling = True
         self.start_stop_btn.setText("Stop Qt Profiling")
         self.start_stop_btn.setStyleSheet("background-color: #ff4444;")
 
     def _stopProfiling(self):
         """Stop the current Qt profiling session"""
-        if self.current_profile is None:
+        profile = self.stop_session()
+        if profile is None:
             return
 
-        # Stop the profile
-        self.current_profile.stop()
-
         # Add to results list
-        self._addResultToList(self.current_profile)
-        self.profile_results.append(self.current_profile)
+        self._addResultToList(profile)
 
         # Reset UI
-        self.is_profiling = False
         self.start_stop_btn.setText("Start Qt Profiling")
         self.start_stop_btn.setStyleSheet("")
 
         # Update session name for next run
         self.session_name_edit.setText(f"Qt_Profile_{len(self.profile_results) + 1}")
-
-        self.current_profile = None
 
     def _addResultToList(self, profile):
         """Add a Qt profile result to the results list"""
